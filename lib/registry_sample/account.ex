@@ -2,19 +2,21 @@ defmodule RegistrySample.Account do
   @moduledoc """
   Simple genserver to represent an imaginary account process.
 
-  Maybe a scenario for this is to fetch data from a database upon
-  init and use the process as an in-memory cache?
+  Maybe we want to fetch additional data from a database upon
+  init.
   """
 
   use GenServer
   require Logger
 
   @account_registry_name :account_process_registry
+  @process_lifetime_ms 86_400_000 # 24 hours - make this number shorter to experiement with process termination
 
   defstruct account_id: 0,
             name: "",
             some_attribute: "",
-            widgets_ordered: 0
+            widgets_ordered: 1,
+            timer_ref: nil
 
 
   @doc """
@@ -72,6 +74,9 @@ defmodule RegistrySample.Account do
     # Add a msg to the process mailbox to
     # tell this process to run `:fetch_data`
     send(self(), :fetch_data)
+    send(self(), :set_terminate_timer)
+
+    Logger.info("Process created... Account ID: #{account_id}")
 
     # Set initial state and return from `init`
     {:ok, %__MODULE__{ account_id: account_id, name: "Account #{account_id}" }}
@@ -84,10 +89,42 @@ defmodule RegistrySample.Account do
   """
   def handle_info(:fetch_data, state) do
 
-    # update the state from the DB in imaginary land
-    updated_state = %__MODULE__{ state | widgets_ordered: 1..1000 |> Enum.random }
+    # update the state from the DB in imaginary land. Hardcoded for now.
+    updated_state = %__MODULE__{ state | widgets_ordered: 1 }
 
     {:noreply, updated_state}
+  end
+
+  @doc """
+  Callback handler that sets a timer for 24 hours to terminate this process.
+
+  You can call this more than once it will continue to `push out` the timer (and cleans up the previous one)
+  """
+  def handle_info(:set_terminate_timer, %__MODULE__{ timer_ref: nil } = state) do
+    # set a timer for 24 hours from now to end this process
+    updated_state =
+      %__MODULE__{ state | timer_ref: Process.send_after(self(), :end_process, @process_lifetime_ms) }
+
+    {:noreply, updated_state}
+  end
+  def handle_info(:set_terminate_timer, %__MODULE__{ timer_ref: timer_ref } = state) do
+
+    # let's cancel the existing timer
+    timer_ref |> Process.cancel_timer
+
+    # set a new timer for 24 hours from now to end this process
+    updated_state =
+      %__MODULE__{ state | timer_ref: Process.send_after(self(), :end_process, @process_lifetime_ms) }
+
+    {:noreply, updated_state}
+  end
+
+  @doc """
+  Gracefully end this process
+  """
+  def handle_info(:end_process, state) do
+    Logger.info("Process terminating... Account ID: #{state.account_id}")
+    {:stop, :normal, state}
   end
 
 
