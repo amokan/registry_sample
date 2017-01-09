@@ -2,6 +2,8 @@
 
 Example application using the new `Registry` module in Elixir 1.4.0
 
+See [this blog post](https://medium.com/@adammokan/registry-in-elixir-1-4-0-d6750fb5aeb#.7cnipan20) for more context
+
 ## The Basics
 
 ### Clone the Repo
