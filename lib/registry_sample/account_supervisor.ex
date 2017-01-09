@@ -8,6 +8,9 @@ defmodule RegistrySample.AccountSupervisor do
 
   Functions contained in this supervisor module will assist in the creation and retrieval of 
   new account processes.
+
+  Also note the guards utilizing `is_integer(account_id)` on the functions. My feeling here is that
+  if someone makes a mistake and tries sending a string-based key or an atom, I'll just _"let it crash"_.
   """
 
   use Supervisor
@@ -51,7 +54,7 @@ defmodule RegistrySample.AccountSupervisor do
 
 
   @doc """
-  Creates a new account process, based on the `account_id` integer or `account_id` atom.
+  Creates a new account process, based on the `account_id` integer.
 
   Returns a tuple such as `{:ok, account_id}` if successful.
   If there is an issue, an `{:error, reason}` tuple is returned.
@@ -76,7 +79,7 @@ defmodule RegistrySample.AccountSupervisor do
 
 
   @doc """
-  Return a list of `account_id` atoms known by the registry.
+  Return a list of `account_id` integers known by the registry.
 
   ex - `[1, 23, 46]`.
   """
