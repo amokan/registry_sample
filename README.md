@@ -2,7 +2,7 @@
 
 Example application using the new `Registry` module in Elixir 1.4
 
-See [this blog post](https://medium.com/@adammokan/registry-in-elixir-1-4-0-d6750fb5aeb#.7cnipan20) for more context.
+See this [blog post](https://medium.com/@adammokan/registry-in-elixir-1-4-0-d6750fb5aeb#.7cnipan20) for more context.
 
 ## The Basics
 
@@ -19,7 +19,7 @@ iex -S mix
 
 ### Scenario
 
-From [the blog post](https://medium.com/@adammokan/registry-in-elixir-1-4-0-d6750fb5aeb#.7cnipan20):
+From the [blog post](https://medium.com/@adammokan/registry-in-elixir-1-4-0-d6750fb5aeb#.7cnipan20):
 
 _Imagine we have a scenario where we are selling widgets to customers. Our boss wants us to build a realtime UI that shows every account that has placed an order in the current day along with some basic info about each account. If an account doesn’t place another order within 24 hours, it should fall off the UI_
 
