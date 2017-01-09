@@ -2,16 +2,21 @@ defmodule RegistrySample.Account do
   @moduledoc """
   Simple genserver to represent an imaginary account process.
 
-  Maybe we want to fetch additional data from a database upon
-  init.
+  Requires you provide an integer-based `account_id` upon starting.
+
+  There is a `:fetch_data` callback handler where you could easily get additional account attributes
+  from a database or some other source - assuming the `account_id` provided was a valid key to use as
+  database criteria.
   """
 
   use GenServer
   require Logger
 
   @account_registry_name :account_process_registry
-  @process_lifetime_ms 86_400_000 # 24 hours - make this number shorter to experiement with process termination
+  @process_lifetime_ms 86_400_000 # 24 hours in milliseconds - make this number shorter to experiement with process termination
 
+  # Just a simple struct to manage the state for this genserver
+  # You could add additional attributes here to keep track of for a given account
   defstruct account_id: 0,
             name: "",
             some_attribute: "",
@@ -79,7 +84,7 @@ defmodule RegistrySample.Account do
     Logger.info("Process created... Account ID: #{account_id}")
 
     # Set initial state and return from `init`
-    {:ok, %__MODULE__{ account_id: account_id, name: "Account #{account_id}" }}
+    {:ok, %__MODULE__{ account_id: account_id }}
   end
 
 
@@ -90,7 +95,8 @@ defmodule RegistrySample.Account do
   def handle_info(:fetch_data, state) do
 
     # update the state from the DB in imaginary land. Hardcoded for now.
-    updated_state = %__MODULE__{ state | widgets_ordered: 1 }
+    updated_state =
+      %__MODULE__{ state | widgets_ordered: 1, name: "Account #{account_id}" }
 
     {:noreply, updated_state}
   end
@@ -99,8 +105,14 @@ defmodule RegistrySample.Account do
   Callback handler that sets a timer for 24 hours to terminate this process.
 
   You can call this more than once it will continue to `push out` the timer (and cleans up the previous one)
+
+  I could have combined the logic below and used just one callback handler, but I like seperating the
+  concern of creating an initial timer reference versus destroying an existing one. But that is up to you.
   """
   def handle_info(:set_terminate_timer, %__MODULE__{ timer_ref: nil } = state) do
+    # This is the first time we've dealt with this account, so lets set our timer reference attribute
+    # to end this process in 24 hours from now
+
     # set a timer for 24 hours from now to end this process
     updated_state =
       %__MODULE__{ state | timer_ref: Process.send_after(self(), :end_process, @process_lifetime_ms) }
@@ -108,6 +120,8 @@ defmodule RegistrySample.Account do
     {:noreply, updated_state}
   end
   def handle_info(:set_terminate_timer, %__MODULE__{ timer_ref: timer_ref } = state) do
+    # This match indicates we are in a situation where `state.timer_ref` is not nil -
+    # so we already have dealt with this account before
 
     # let's cancel the existing timer
     timer_ref |> Process.cancel_timer
@@ -118,6 +132,7 @@ defmodule RegistrySample.Account do
 
     {:noreply, updated_state}
   end
+
 
   @doc """
   Gracefully end this process

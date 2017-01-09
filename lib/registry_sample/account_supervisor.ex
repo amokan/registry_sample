@@ -26,6 +26,13 @@ defmodule RegistrySample.AccountSupervisor do
 
 
   @doc """
+  Will find the process identifier (in our case, the `account_id`) if it exists in the registry and
+  is attached to a running `RegistrySample.Account` process.
+
+  If the `account_id` is not present in the registry, it will create a new `RegistrySample.Account` 
+  process and add it to the registry for the given `account_id`.
+
+  Returns a tuple such as `{:ok, account_id}` or `{:error, reason}`
   """
   def find_or_create_process(account_id) when is_integer(account_id) do
     if account_process_exists?(account_id) do
@@ -37,7 +44,7 @@ defmodule RegistrySample.AccountSupervisor do
 
 
   @doc """
-  Determines if a account process exists, based on the `account_id` integer.
+  Determines if a `RegistrySample.Account` process exists, based on the `account_id` provided.
 
   Returns a boolean.
 
@@ -69,7 +76,7 @@ defmodule RegistrySample.AccountSupervisor do
 
 
   @doc """
-  Returns the count of account processes managed by this supervisor.
+  Returns the count of `RegistrySample.Account` processes managed by this supervisor.
 
   ## Example
       iex> RegistrySample.AccountSupervisor.account_process_count
@@ -81,7 +88,7 @@ defmodule RegistrySample.AccountSupervisor do
   @doc """
   Return a list of `account_id` integers known by the registry.
 
-  ex - `[1, 23, 46]`.
+  ex - `[1, 23, 46]`
   """
   def account_ids do
     Supervisor.which_children(__MODULE__)
@@ -97,6 +104,8 @@ defmodule RegistrySample.AccountSupervisor do
   Return a list of widgets ordered per account.
 
   The list will be made up of a map structure for each child account process.
+
+  ex - `[%{account_id: 2, widgets_sold: 1}, %{account_id: 10, widgets_sold: 1}]`
   """
   def get_all_account_widgets_ordered do
     account_ids() |> Enum.map(&(%{ account_id: &1, widgets_sold: RegistrySample.Account.widgets_ordered(&1) }))
