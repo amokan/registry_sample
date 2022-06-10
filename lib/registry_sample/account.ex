@@ -92,7 +92,7 @@ defmodule RegistrySample.Account do
   Our imaginary callback handler to get some data from a DB to
   update the state on this process.
   """
-  def handle_info(:fetch_data, state) do
+  def handle_info(:fetch_data, state = %{account_id: account_id}) do
 
     # update the state from the DB in imaginary land. Hardcoded for now.
     updated_state =
